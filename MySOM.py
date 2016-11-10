@@ -13,12 +13,12 @@ from PIL import ImageFont
 from PIL import ImageDraw 
 
 class SOM:
-    def __init__(self, file_names, learning_rate = 0.001):
+    def __init__(self, file_names, learning_rate = 0.0001):
         self.kmer = 3
         self.windowed = True
-        self.windowsize = 10000
+        self.windowsize = 50000
         self.boolean = True
-        self.iterations = 100
+        self.iterations = 5
         self.batch = True
         self.radiusfactor = 3
         [fv, self.trainHeaders] = self.generate_dataVectors(file_names)
@@ -366,13 +366,14 @@ class SOM:
         self.kmer = int(math.log(self.FV_size, 4))
     
     def contigs_classes(self, classes, headers):#creates a list containing the where each contig was classed on the map, where in the index of the contig a list of locations is created
-        print len(headers)
-        contigs =  np.array([[-1 for i in range(0)]  for x in range(len(headers))])
+        print "length of headers list is: " + str(len(headers))
+        contigs = [[-1 for i in range(0)] for x in range(len(headers))]
         for k in range(len(headers)):
             for i in range(len(classes)):
                 for j in range(len(classes[i])):
                     if k in classes[i][j]:
-                        np.append(contigs[k], (i,j))
+                        contigs[k].append((i,j))
+        print "contigs_classes: " + str(contigs)
         return contigs
         
     @staticmethod
@@ -385,17 +386,16 @@ class SOM:
         for j in range(len(types)):
             types_counts.append((types[j],list.count(types[j])))
         return types_counts    
-      
-        
+    
     def check_chimerity(self, ContigsClasses): #contig_composition is a list of lists, containing for index 1 info about where contig 1 was classified on the map but not the locations of the nodes on the map but which contig was most commonly classified to this node during training.
-        contig_composition = np.array([[0 for i in range(len(ContigsClasses[l]))] for l in range(len(ContigsClasses))])
+        contig_composition = [[0 for i in range(len(ContigsClasses[l]))] for l in range(len(ContigsClasses))]
         for i in range(len(ContigsClasses)):
             for j in range(len(ContigsClasses[i])):
-                [n,m] = ContigsClasses[i,j]
-                contig_composition[i,j] = self.composition_map[n,m] 
+                indices = ContigsClasses[i][j]
+                contig_composition[i][j] = self.composition_map[indices[0], indices[1]] 
+        return contig_composition
         #for i in range(len(contig_composition)):
             #contig_composition[i] = SOM.evaluate_composition(contig_composition[i])
-        return contig_composition
          
 if __name__ == "__main__": 
     p_r = "protozoa.2.1.genomic.fna"
@@ -404,125 +404,21 @@ if __name__ == "__main__":
     a_r = "archaea.4.1.genomic.fna"
     v_r = "viral.1.1.genomic.fna"
 
-    letter = "p"
-    cut = False
-    cutsize = 50
-
-    species = 0
-
-    
-    
-#    p_r_c = "protozoa-"+str(species)+"-species-"+str(cutsize)+"-size.fna"
-#    f_r_c = "fungi-"+str(species)+"-species-"+str(cutsize)+"-size.fna"
-#    b_r_c = "bacteria-"+str(species)+"-species-"+str(cutsize)+"-size.fna"
-#    a_r_c = "archaea-"+str(species)+"-species-"+str(cutsize)+"-size.fna"
-#    v_r_c = "viral-"+str(species)+"-species-"+str(cutsize)+"-size.fna"
-
-    #p_r_c = "protozoa-"+str(species)+"-species.fna"
-    #f_r_c = "fungi-"+str(species)+"-species.fna"
-    #b_r_c = "bacteria-"+str(species)+"-species.fna"
-    #a_r_c = "archaea-"+str(species)+"-species.fna"
-    #v_r_c = "viral-"+str(species)+"-species.fna"
-
-    p_r_c = "protozoa-cut-"+str(cutsize)+".fna"
-    f_r_c = "fungi-cut-"+str(cutsize)+".fna"
-    b_r_c = "bacteria-cut-"+str(cutsize)+".fna"
-    a_r_c = "archaea-cut-"+str(cutsize)+".fna"
-    v_r_c = "viral-cut-"+str(cutsize)+".fna"
-
-    p = "Protozoa.fna"
-    f = "total_fungus.fna"
-    b = "Bacteria_total.fna"
-    a = "Archaea_total.fna"
-    v = "Virus_total.fna"
-    
-#    p1 = "Protozoa.fna"
-#    p2 = "protozoa-test.fna"
-#    f1 = "fungus.fna"
-#    f2 = "fungus2.fna"    
-#    f3 = "fungus3.fna"    
-#    b1 = "Bacteria.fna"
-#    b2 = "Bacteria2.fna"
-#    a1 = "Archaea-cg-1.fna"
-#    a2 = "Archaea-cg-2.fna"
-#    a3 = "Archaea-cg-3.fna"
-#    a4 = "Archaea-cg-4.fna"
-#    v1 = "Virus1.fna"
-#    v2 = "Virus2.fna"    
-#    v3 = "Virus3.fna"
-#    v4 = "Virus4.fna"
-#    v5 = "Virus5.fna"
-    
-    p1 = "Protozoa-cg-1.fna"
-    p2 = "Protozoa-chr-1.fna"
-    p3 = "Protozoa-chr-2.fna"
-    p4 = "Protozoa-chr-3.fna"
-    p5 = "Protozoa-chr-4.fna"
-    f1 = "Fungi-cg-1.fna"
-    f2 = "Fungi-chr-1.fna"    
-    f3 = "Fungi-chr-2.fna"   
-    b1 = "Bacteria-cg-1.fna"
-    b2 = "Bacteria-cg-2.fna"
-    b3 = "Bacteria-cg-3.fna"    
-    b4 = "Bacteria-cg-4.fna"
-    b5 = "Bacteria-cg-5.fna"
-
-    a1 = "Archaea-cg-1.fna"
-    a2 = "Archaea-cg-2.fna"
-    a3 = "Archaea-cg-3.fna"
-    a4 = "Archaea-cg-4.fna"
-    v1 = "Viral-cg-1.fna"
-    v2 = "Viral-cg-2.fna"    
-    v3 = "Viral-cg-3.fna"
-    v4 = "Viral-cg-4.fna"
-    v5 = "Viral-cg-5.fna"    
-    v6 = "Viral-cg-6.fna"
-
-    p_t = "protozoa-test.fna"
-    f_t = "fungus-test.fna"
-    b_t = "Bacteria-test.fna"
-    a_t = "Archaea-test.fna"
-    v_t = "Virus-test-total.fna"
-
-    p_t2 = "protozoa-cut-6.fna"
-    f_t2 = "fungi-cut-6.fna"
-    b_t2 = "bacteria-cut-6.fna"
-    a_t2 = "archaea-cut-6.fna"
-    v_t2 = "viral-cut-6.fna"
+    p = "fasta/Protozoa_total.fna"
+    f = "fasta/total_fungus.fna"
+    b = "fasta/Bacteria_total.fna"
+    a = "fasta/Archaea_total.fna"
+    v = "fasta/Virus_total.fna"
     
     pfbva = "Protozoa_fungus_bacteria_virus_and_archea.fna"
     cont = "filtered_contigs.fa"
-    if letter == "r":
-        if cut:
-            u = 0
-            S = SOM([p_r_c, f_r_c, b_r_c, a_r_c, v_r_c])
-        else:
-            S = SOM([p_r, f_r, b_r, a_r, v_r])
-    if letter == "t":
-        S = SOM([p_t, f_t, b_t, a_t, v_t])
-        
-    if letter == "p":
-        #S = SOM(["test.fa"])        
-        #S = SOM([f1,f2,b1,b2])
-        #S = SOM([p1, p2, p3, p4, p5, f1, f2, f3, b1, b2, b3, b4, b5, a1, a2, a3, a4, v1, v2, v3, v4, v5, v6, v_t])
-        #S = SOM([a1,a2,a3,a4])
-        S = SOM([p, f, b, a, v])
-    if letter == "cont":
-        S = SOM([cont])
-    #S = SOM([a, v])
-    #S = SOM([pfbva])
-    #S = SOM([b, f])
-    #S = SOM("Bacteria_and_fungus.fna")
-    #S = SOM(["test2.fa"])
-    #S = SOM("contigs.fa")
-    #S.produce_classes_map([classes3, classes4], "kmer"+str(S.kmer)+"-B&A-"+"classesmap-BvsA-files-before-training" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
+    
+    S = SOM([p, f, b, a, v])
     S.train(S.iterations, S.trainV)
     #print S.trainRecord
     
-   
     #S.write_map("trained-map-contigs-"+str(S.kmer)+"-window-"+str(S.windowsize))
-    S.write_map("trained-map-P&B&F&A&V_all-species-"+letter+"-"+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+str(S.iterations)+"iter"+"-LR"+str(S.learning_rate) + ("-batch" if S.batch else "-nonbatch-") +"radiusfactor-"+str(S.radiusfactor) + ("-windowed-"+str(S.windowsize) if S.windowed else "")+"-")
+    S.write_map("trained_maps/trained-map-P&B&F&A&V_all-species-"+str(S.iterations)+"iter"+"-LR"+str(S.learning_rate) + ("-batch" if S.batch else "-nonbatch-") +"radiusfactor-"+str(S.radiusfactor) + ("-windowed-"+str(S.windowsize) if S.windowed else "")+"-")
     #S.write_map("trained-map-P&B&F&A&V_"+letter+"-"+("c"+str(cutsize)+"-" if cut else "-")+str(S.iterations)+"iter"+"-LR"+str(S.learning_rate) + ("-batch" if S.batch else "-nonbatch-") +"radiusfactor-"+str(S.radiusfactor) + ("-windowed-"+str(S.windowsize) if S.windowed else "")+"-")
 
     #S.read_map("trained-map-P&B&F&A&V_p--560iter-LR0.001-batchradiusfactor-3-windowed-10000-32x53x256",32,53,256)
@@ -530,143 +426,21 @@ if __name__ == "__main__":
     
     #S.u_marix("u-matrix_cont_"+str(S.windowsize))
       
-    #[classes11, headers1] = S.classify([p_r_c])
-    #[classes12, headers2] = S.classify([f_r_c])
-    #[classes13, headers3] = S.classify([b_r_c])
-    #[classes14, headers4] = S.classify([a_r_c])
-    #[classes15, headers5] = S.classify([v_r_c])  
-        
-    #[classes21, headers1] = S.classify([p_t2])
-    #[classes22, headers2] = S.classify([f_t2])
-    #[classes23, headers3] = S.classify([b_t2])
-    #[classes24, headers4] = S.classify([a_t2])
-    #[classes25, headers5] = S.classify([v_t2])
-    
-#    [classes31, headers1] = S.classify([p_t])
-#    [classes32, headers2] = S.classify([f_t])
-#    [classes33, headers3] = S.classify([b_t])
-#    [classes34, headers4] = S.classify([a_t])
-#    [classes35, headers5] = S.classify([v_t])
-          
-#    [classes41, headers1] = S.classify([p_r])
-#    [classes42, headers2] = S.classify([f_r])
-#    [classes43, headers3] = S.classify([b_r])
-#    [classes44, headers4] = S.classify([a_r])
-#    [classes45, headers5] = S.classify([v_r])
-   
-     
-#    [classes51, headers1] = S.classify([p])
-#    [classes52, headers2] = S.classify([f])
-#    [classes53, headers3] = S.classify([b])
-#    [classes54, headers4] = S.classify([a])
-#    [classes55, headers5] = S.classify([v])
-    
-   # [classes60, headers60] = S.classify([p1, p2, p3, p4, p5])
-#    [classes61, headers1] = S.classify([p2])
-#    [classes62, headers1] = S.classify([p3])
-#    [classes63, headers1] = S.classify([p4])
-#    [classes64, headers1] = S.classify([p5])
-    
-  #  [classes65, headers2] = S.classify([f1, f2, f3])
-#    [classes66, headers2] = S.classify([f2])
-#    [classes67, headers2] = S.classify([f3])
- #   [classes68, headers3] = S.classify([b1, b2, b3, b4, b5])
-#    [classes69, headers3] = S.classify([b2])
-#    [classes70, headers3] = S.classify([b3])
-#    [classes71, headers3] = S.classify([b4])
-#    [classes72, headers3] = S.classify([b5])
-   # [classes73, headers4] = S.classify([a1, a2, a3, a4])
-    #[classes73a, headers73a] = S.classify([a1])
-    #[classes74, headers4] = S.classify([a2])
-    #[classes75, headers4] = S.classify([a3])
-    #[classes76, headers4] = S.classify([a4])
- #   [classes77, headers5] = S.classify([v1, v2, v3, v4, v5, v_t])
-#    [classes78, headers5] = S.classify([v2]) 
-#    [classes79, headers5] = S.classify([v3])
-#    [classes80, headers5] = S.classify([v4])
-#    [classes81, headers5] = S.classify([v5]) 
-#    [classes82, headers5] = S.classify([v6])
-#    [classes83, headers5] = S.classify([v_t])  
-#    [classes100, headers100] = S.classify(["filtered_contigs.fa"])
     [classes60, headers60] = S.classify([p, f, b, a, v])
-    S.produce_classes_map([classes60], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_p"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    der = S.check_chimerity(S.contigs_classes(classes60, headers60))
+    S.produce_classes_map([classes60], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_p"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
+        
+    contig_composition = S.check_chimerity(S.contigs_classes(classes60, headers60))
+    print contig_composition
+    print S.contigs_classes
+    print S.trainRecord
     for i in range(len(headers60)):
-        print headers60[i] +" : " + str(len(der[i]))+"\n"
+        print headers60[i] +": " + str(contig_composition[i])+"\n"
         
     sys.exit()
-    #S.produce_classes_map([classes41, classes42, classes43, classes44, classes45], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes21, classes22, classes23, classes24, classes25], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_t2"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes31, classes32, classes33, classes34, classes35], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_t"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes41, classes42, classes43, classes44, classes45], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_r"+str(species)+"-" if cut else "-")+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes51, classes52, classes53, classes54, classes55], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_p"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes62, classes63, classes65, classes66 ], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-F&B_species-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_F&B"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes651, classes64], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-F&B(test)_species-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_F&B"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    #S.produce_classes_map([classes64, classes70 ], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-F&A_species-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
        
     S.produce_classes_map([classes60, classes65, classes68, classes73, classes77], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
        
-       
-    #S.produce_classes_map([classes11, classes12, classes13, classes14, classes15], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
     S.produce_classes_map([classes100], "kmer" + str(S.kmer) + "_contigs-20mb-against-P-B-F-A-V_species-all-"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-map")
-    
-    #S.produce_classes_map([classes67, classes68, classes69,classes70 ], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_pa"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_pa"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    #[classes6, headers6] = S.classify("Uniprot-Amylase-contigs.extract.fa")
-    #[classes7, headers7] = S.classify("Uniprot-Cellulase-contigs.extract.fa")
-    #[classes8, headers8] = S.classify("Uniprot-Laminarinase-contigs.extract.fa")
-    #[classes9, headers9] = S.classify("Uniprot-Alginate_Lyase-contigs.extract.fa")
-    
-    #[classes, headers] = S.classify("test.fa")
-    #[classes2, headers2] = S.classify("test.fa")
-    #[classes3, headers3] = S.classify("test.fa")
-
-
-    #S.produce_classes_map([classes1], "kmer"+str(S.kmer)+"_protozoa-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes2], "kmer"+str(S.kmer)+"_fungi-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes3], "kmer"+str(S.kmer)+"_bacteria-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes4], "kmer"+str(S.kmer)+"_archaea-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes5], "kmer"+str(S.kmer)+"_virus-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    #S.produce_classes_map([classes6], "kmer"+str(S.kmer)+"_Magda-Amylase-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes7], "kmer"+str(S.kmer)+"_Magda-Cellulase-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes8], "kmer"+str(S.kmer)+"_Magda-Laminarinase-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes9], "kmer"+str(S.kmer)+"_Magda-Alginate-against-P-B-F-A-V-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    
-    #S.produce_classes_map([classes1, classes2, classes3, classes4, classes5], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV-files" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes11, classes12, classes13, classes14, classes15], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_r-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_r-files" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-
-#    S.produce_classes_map([classes21], "kmer"+str(S.kmer)+"_protozoa-against-P-B-F-A-V-t2-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-#    S.produce_classes_map([classes22], "kmer"+str(S.kmer)+"_fungi-against-P-B-F-A-V-t2-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-#    S.produce_classes_map([classes23], "kmer"+str(S.kmer)+"_bacteria-against-P-B-F-A-V-t2-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-#    S.produce_classes_map([classes24], "kmer"+str(S.kmer)+"_archaea-against-P-B-F-A-V-t2-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-#    S.produce_classes_map([classes25], "kmer"+str(S.kmer)+"_virus-against-P-B-F-A-V-t2-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-
-    #S.produce_classes_map([classes31], "kmer"+str(S.kmer)+"_protozoa-against-P-B-F-A-V-t-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-    #S.produce_classes_map([classes32], "kmer"+str(S.kmer)+"_fungi-against-P-B-F-A-V-t-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-    #S.produce_classes_map([classes33], "kmer"+str(S.kmer)+"_bacteria-against-P-B-F-A-V-t-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-    #S.produce_classes_map([classes34], "kmer"+str(S.kmer)+"_archaea-against-P-B-F-A-V-t-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-    #S.produce_classes_map([classes35], "kmer"+str(S.kmer)+"_virus-against-P-B-F-A-V-t-single-class-map" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""), False)
-
-    #S.produce_classes_map([classes21, classes22, classes23, classes24, classes25], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_t2-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("-c"+str(cutsize) if cut else "")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes31, classes32, classes33, classes34, classes35], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_t-"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("-c"+str(cutsize) if cut else "")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    #S.produce_classes_map([classes10], "kmer"+str(S.kmer) + "_contigs-20mb-against-P-B-F-A-V_t"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-map", False)
-    #S.produce_classes_map([classes11, classes12, classes13, classes14, classes15], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_"+letter+("c"+str(cutsize)+"-" if cut else "-")+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("-c"+str(cutsize) if cut else "")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    
-    #S.produce_classes_map([classes2, classes3], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-B&F(test)-"+str(S.iterations)+"iter-kmerperc-" + ("batch" if S.batch else "nonbatch") + "-classesmap-BvsF-files" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    #S.produce_classes_map([classes4, classes5], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-A&V-"+str(S.iterations)+"iter-kmerperc-" + ("batch" if S.batch else "nonbatch") + "-classesmap-AvsV-files" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-        
-    #S.produce_classes_map([classes12, classes15], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-F_r&V_r-"+str(S.iterations)+"iter-kmerperc-" + ("batch" if S.batch else "nonbatch") + "-classesmap-F_rvsV_r-files" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-
-    #S.produce_classes_map([classes6, classes7, classes8, classes9], "kmer"+str(S.kmer)+"-Magda-"+str(S.iterations)+"iter-kmerperc-" + ("batch" if S.batch else "nonbatch") + "-classesmap-PvsBvsFvsAvsV-files" +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-    
-    #S.produce_classes_map([classes2, classes3], "Classes_B&F-map")
-    #S.produce_classes_map([classes4], "Classes_F2-against-B&F-map")    
     
     #colour_single_class("Penicillium marneffei", classes_map, headers_list, col)
     #S.colour_map()
