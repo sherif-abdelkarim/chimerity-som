@@ -14,11 +14,11 @@ from PIL import ImageDraw
 
 class SOM:
     def __init__(self, file_names, learning_rate = 0.001):
-        self.kmer = 1
+        self.kmer = 3
         self.windowed = True
         self.windowsize = 10000
         self.boolean = True
-        self.iterations = 5
+        self.iterations = 100
         self.batch = True
         self.radiusfactor = 3
         [fv, self.trainHeaders] = self.generate_dataVectors(file_names)
@@ -365,7 +365,7 @@ class SOM:
         self.radius = max(self.height, self.width)/self.radiusfactor
         self.kmer = int(math.log(self.FV_size, 4))
     
-    def contigs_classes(self, classes, headers):
+    def contigs_classes(self, classes, headers):#creates a list containing the where each contig was classed on the map, where in the index of the contig a list of locations is created
         print len(headers)
         contigs =  np.array([[-1 for i in range(0)]  for x in range(len(headers))])
         for k in range(len(headers)):
@@ -387,15 +387,14 @@ class SOM:
         return types_counts    
       
         
-    def check_chimerity(self, ContigsClasses):
+    def check_chimerity(self, ContigsClasses): #contig_composition is a list of lists, containing for index 1 info about where contig 1 was classified on the map but not the locations of the nodes on the map but which contig was most commonly classified to this node during training.
         contig_composition = np.array([[0 for i in range(len(ContigsClasses[l]))] for l in range(len(ContigsClasses))])
         for i in range(len(ContigsClasses)):
             for j in range(len(ContigsClasses[i])):
                 [n,m] = ContigsClasses[i,j]
                 contig_composition[i,j] = self.composition_map[n,m] 
-        for i in range(len(contig_composition)):
-            contig_composition[i] = SOM.evaluate_composition(contig_composition[i])        
-               
+        #for i in range(len(contig_composition)):
+            #contig_composition[i] = SOM.evaluate_composition(contig_composition[i])
         return contig_composition
          
 if __name__ == "__main__": 
