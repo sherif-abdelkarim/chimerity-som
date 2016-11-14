@@ -14,7 +14,7 @@ from PIL import ImageDraw
 
 class SOM:
     def __init__(self, file_names, learning_rate = 0.001):
-        self.kmer = 3
+        self.kmer = 2
         self.windowed = True
         self.windowsize = 50000
         self.boolean = True
@@ -107,8 +107,6 @@ class SOM:
         for i in range(self.height):
             for j in range(self.width):
                 if self.trainRecord[i][j]:
-                    print "entered the if condition...."
-                    print int(collections.Counter(self.trainRecord[i][j]).most_common()[0][0])
                     self.composition_map[i][j] = int(collections.Counter(self.trainRecord[i][j]).most_common()[0][0]) #stores the most common class from the training record for each node on a composition map        
 
     def u_marix(self, name):
@@ -229,7 +227,7 @@ class SOM:
                     list_tuples = [(tuple(int(inner*(1 if c[t][j][i] else 0)) for inner in RGB_tuples_scales[t])) for t in range(len(c))]
                 img.putpixel((i,j), tuple([sum(y) for y in zip(*list_tuples)])) #(int((len(c[t][j][i])/maxlen)*RGB_tuples[t])))
         img = img.resize((S.width*10, S.height*10),Image.NEAREST)
-        img.save(name +".png")
+        img.save("images/"+name +".png")
 
 
     def find_class(self, class_name, header_list):
@@ -441,7 +439,9 @@ if __name__ == "__main__":
     print "contig_composition: "
     print str((contig_composition))
     for i in range(len(headers60)):
-        print str(headers60[i]) + ": " + str(contig_composition[i])
+        print str(headers60[i]) + ": "
+        for j in range(len(contig_composition[i])):
+            print ".........." + str(headers60[contig_composition[i][j]])
     #print "training record: " + str(S.trainRecord)
     sys.exit()
        
