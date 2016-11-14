@@ -13,12 +13,12 @@ from PIL import ImageFont
 from PIL import ImageDraw 
 
 class SOM:
-    def __init__(self, file_names, learning_rate = 0.0001):
+    def __init__(self, file_names, learning_rate = 0.001):
         self.kmer = 3
         self.windowed = True
         self.windowsize = 50000
         self.boolean = True
-        self.iterations = 5
+        self.iterations = 200
         self.batch = True
         self.radiusfactor = 3
         [fv, self.trainHeaders] = self.generate_dataVectors(file_names)
@@ -54,7 +54,7 @@ class SOM:
         
         self.trainRecord = [[[-1 for i in range(0)]  for x in range(self.width)] for y in range(self.height)]
         self.colourFlags = [[0 for x in range(self.width)] for y in range(self.height)]
-        self.composition_map = np.array(self.trainRecord)
+        self.composition_map = [[-1 for x in range(self.width)] for y in range(self.height)]
         
     def train(self, iterations = 1000, training_vector = [[]]):
         time_constant = iterations/log(self.radius)
@@ -107,9 +107,9 @@ class SOM:
         for i in range(self.height):
             for j in range(self.width):
                 if self.trainRecord[i][j]:
-                    self.composition_map[i,j] = int(collections.Counter(self.trainRecord[i][j]).most_common()[0][0]) #stores the most common class from the training record for each node on a composition map
-        sys.stdout.write("\n")
-        
+                    print "entered the if condition...."
+                    print int(collections.Counter(self.trainRecord[i][j]).most_common()[0][0])
+                    self.composition_map[i][j] = int(collections.Counter(self.trainRecord[i][j]).most_common()[0][0]) #stores the most common class from the training record for each node on a composition map        
 
     def u_marix(self, name):
         from PIL import Image
@@ -125,14 +125,12 @@ class SOM:
                 #n = [self.FV_distance(self.nodes[i,j],self.nodes[i-1,j-1]), self.FV_distance(self.nodes[i,j],self.nodes[i-1,j]),self.FV_distance(self.nodes[i,j],self.nodes[i-1,j+1]),self.FV_distance(self.nodes[i,j],self.nodes[i,j-1]),self.FV_distance(self.nodes[i,j],self.nodes[i,j+1]), self.FV_distance(self.nodes[i,j],self.nodes[i+1,j-1]), self.FV_distance(self.nodes[i,j],self.nodes[i+1,j]), self.FV_distance(self.nodes[i,j],self.nodes[i+1,j+1])]
                 avg_dist[i,j] = np.mean(np.array(n))
         u = avg_dist     
-        print u
         
         max = 0
         for i in range(len(u)):
             for j in range(len(u[i])):
                 if u[i,j]>max:
                     max = u[i,j]
-        print max
         imag = u
         img = Image.new("L", (S.width, S.height))
         for r in range(len(u)):
@@ -373,7 +371,8 @@ class SOM:
                 for j in range(len(classes[i])):
                     if k in classes[i][j]:
                         contigs[k].append((i,j))
-        print "contigs_classes: " + str(contigs)
+        print "contigs_classes: "
+        print str((contigs))
         return contigs
         
     @staticmethod
@@ -391,18 +390,21 @@ class SOM:
         contig_composition = [[0 for i in range(len(ContigsClasses[l]))] for l in range(len(ContigsClasses))]
         for i in range(len(ContigsClasses)):
             for j in range(len(ContigsClasses[i])):
-                indices = ContigsClasses[i][j]
-                contig_composition[i][j] = self.composition_map[indices[0], indices[1]] 
+                if  ContigsClasses[i][j]:
+                    index1, index2 = ContigsClasses[i][j]
+                    contig_composition[i][j] = self.composition_map[index1][index1] 
+        print "composition_map: "
+        print str((self.composition_map))
         return contig_composition
         #for i in range(len(contig_composition)):
             #contig_composition[i] = SOM.evaluate_composition(contig_composition[i])
          
 if __name__ == "__main__": 
-    p_r = "protozoa.2.1.genomic.fna"
-    f_r = "fungi.1.1.genomic.fna"
-    b_r = "bacteria.421.1.genomic.fna"
-    a_r = "archaea.4.1.genomic.fna"
-    v_r = "viral.1.1.genomic.fna"
+    p_r = "fasta/protozoa.2.1.genomic.fna"
+    f_r = "fasta/fungi.1.1.genomic.fna"
+    b_r = "fasta/bacteria.421.1.genomic.fna"
+    a_r = "fasta/archaea.4.1.genomic.fna"
+    v_r = "fasta/viral.1.1.genomic.fna"
 
     p = "fasta/Protozoa_total.fna"
     f = "fasta/total_fungus.fna"
@@ -427,15 +429,20 @@ if __name__ == "__main__":
     #S.u_marix("u-matrix_cont_"+str(S.windowsize))
       
     [classes60, headers60] = S.classify([p, f, b, a, v])
+    [classes61, headers61] = S.classify([p])
+    [classes62, headers62] = S.classify([f])
+    [classes63, headers63] = S.classify([b])
+    [classes64, headers64] = S.classify([a])
+    [classes65, headers65] = S.classify([v])
+
     S.produce_classes_map([classes60], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_p"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
-        
+    S.produce_classes_map([classes61, classes62, classes63, classes64, classes65], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V"+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV"+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
     contig_composition = S.check_chimerity(S.contigs_classes(classes60, headers60))
-    print contig_composition
-    print S.contigs_classes
-    print S.trainRecord
+    print "contig_composition: "
+    print str((contig_composition))
     for i in range(len(headers60)):
-        print headers60[i] +": " + str(contig_composition[i])+"\n"
-        
+        print str(headers60[i]) + ": " + str(contig_composition[i])
+    #print "training record: " + str(S.trainRecord)
     sys.exit()
        
     S.produce_classes_map([classes60, classes65, classes68, classes73, classes77], "kmer"+str(S.kmer)+"-LR"+str(S.learning_rate)+"-P&B&F&A&V_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+str(S.iterations)+"iter-kmerperc-batch-classesmap-PvsBvsFvsAvsV_"+letter+("c"+str(cutsize)+"-sp-"+str(species)+"-" if cut else "-")+"-files-radiusfactor-"+str(S.radiusfactor) +("-windowed-"+str(S.windowsize) if S.windowed else "")+("-boolean" if S.boolean else ""))
